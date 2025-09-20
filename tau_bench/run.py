@@ -18,7 +18,14 @@ from tau_bench.envs.user import UserStrategy
 
 
 def run(config: RunConfig) -> List[EnvRunResult]:
-    assert config.env in ["retail", "airline"], "Only retail and airline envs are supported"
+    # For backward compatibility, keep legacy validation for hardcoded domains
+    legacy_domains = ["retail", "airline"]
+    if config.domain_config_path is None and config.env not in legacy_domains:
+        # Check if it's a registered domain
+        from tau_bench.domain_config import domain_registry
+        if domain_registry.get_domain(config.env) is None:
+            raise ValueError(f"Unknown environment: {config.env}. Available legacy domains: {legacy_domains}. Use --domain-config-path for custom domains.")
+    
     assert config.model_provider in provider_list, "Invalid model provider"
     assert config.user_model_provider in provider_list, "Invalid user model provider"
     assert config.agent_strategy in ["tool-calling", "act", "react", "few-shot"], "Invalid agent strategy"
@@ -38,6 +45,7 @@ def run(config: RunConfig) -> List[EnvRunResult]:
         user_model=config.user_model,
         user_provider=config.user_model_provider,
         task_split=config.task_split,
+        domain_config_path=config.domain_config_path,
     )
     agent = agent_factory(
         tools_info=env.tools_info,
@@ -71,6 +79,7 @@ def run(config: RunConfig) -> List[EnvRunResult]:
                 task_split=config.task_split,
                 user_provider=config.user_model_provider,
                 task_index=idx,
+                domain_config_path=config.domain_config_path,
             )
 
             print(f"Running task {idx}")
