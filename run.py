@@ -11,7 +11,8 @@ def parse_args() -> RunConfig:
     parser = argparse.ArgumentParser()
     parser.add_argument("--num-trials", type=int, default=1)
     parser.add_argument(
-        "--env", type=str, choices=["retail", "airline"], default="retail"
+        "--env", type=str, default="retail",
+        help="The environment/domain to use. Use 'retail' or 'airline' for built-in domains, or provide a domain name with --domain-config-path"
     )
     parser.add_argument(
         "--model",
@@ -69,7 +70,23 @@ def parse_args() -> RunConfig:
     parser.add_argument("--shuffle", type=int, default=0)
     parser.add_argument("--user-strategy", type=str, default="llm", choices=[item.value for item in UserStrategy])
     parser.add_argument("--few-shot-displays-path", type=str, help="Path to a jsonlines file containing few shot displays")
+    parser.add_argument("--domain-config-path", type=str, help="Path to domain configuration file (YAML/JSON) for custom domains")
+    parser.add_argument("--list-domains", action="store_true", help="List all available domains and exit")
     args = parser.parse_args()
+    
+    # Handle listing domains
+    if args.list_domains:
+        from tau_bench.domain_config import domain_registry
+        domains = domain_registry.list_domains()
+        if domains:
+            print("Available domains:")
+            for domain in domains:
+                config = domain_registry.get_domain(domain)
+                print(f"  - {domain}: {config.display_name}")
+        else:
+            print("No domains found. Make sure domain configurations are available.")
+        return None
+    
     print(args)
     return RunConfig(
         model_provider=args.model_provider,
@@ -90,12 +107,14 @@ def parse_args() -> RunConfig:
         shuffle=args.shuffle,
         user_strategy=args.user_strategy,
         few_shot_displays_path=args.few_shot_displays_path,
+        domain_config_path=args.domain_config_path,
     )
 
 
 def main():
     config = parse_args()
-    run(config)
+    if config is not None:  # config is None when --list-domains is used
+        run(config)
 
 
 if __name__ == "__main__":
