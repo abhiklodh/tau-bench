@@ -5,13 +5,15 @@ from tau_bench.types import RunConfig
 from tau_bench.run import run
 from litellm import provider_list
 from tau_bench.envs.user import UserStrategy
+from tau_bench.envs import get_available_environments
 
 
 def parse_args() -> RunConfig:
     parser = argparse.ArgumentParser()
     parser.add_argument("--num-trials", type=int, default=1)
+    available_envs = get_available_environments()
     parser.add_argument(
-        "--env", type=str, choices=["retail", "airline"], default="retail"
+        "--env", type=str, choices=available_envs, default=available_envs[0] if available_envs else "retail"
     )
     parser.add_argument(
         "--model",
