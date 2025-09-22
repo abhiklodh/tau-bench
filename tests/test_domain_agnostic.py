@@ -8,8 +8,15 @@ import unittest
 import tempfile
 import yaml
 from pathlib import Path
+from unittest.mock import Mock, patch
+
 from tau_bench.domain_config import DomainConfig, DomainRegistry, domain_registry
 from tau_bench.envs.generic import GenericDomainEnv
+from tau_bench.model_utils.model.bedrock import BedrockModel
+from tau_bench.model_utils.model.general_model import model_factory
+from tau_bench.model_utils.model.model import Platform
+from tau_bench.model_utils.model.chat import Message, Role
+from tau_bench.model_utils.api.datapoint import GenerateDatapoint
 
 
 class TestDomainConfig(unittest.TestCase):
@@ -188,6 +195,117 @@ class TestBackwardCompatibility(unittest.TestCase):
         except Exception as e:
             # Should fail on authentication, not on unknown environment
             self.assertNotIn("Unknown environment", str(e))
+
+
+class TestBedrockModel(unittest.TestCase):
+    """Test Bedrock model functionality."""
+    
+    def setUp(self):
+        """Set up test environment."""
+        # Mock boto3 to avoid requiring actual AWS credentials
+        self.boto3_patcher = patch('boto3.client')
+        self.mock_boto3_client = self.boto3_patcher.start()
+        
+        # Create mock client
+        self.mock_client = Mock()
+        self.mock_boto3_client.return_value = self.mock_client
+        
+    def tearDown(self):
+        """Clean up test environment."""
+        self.boto3_patcher.stop()
+    
+    def test_bedrock_model_initialization(self):
+        """Test BedrockModel initialization."""
+        model = BedrockModel(
+            model="amazon.nova-pro-v1:0",
+            region="us-east-1",
+            temperature=0.5
+        )
+        
+        self.assertEqual(model.model, "amazon.nova-pro-v1:0")
+        self.assertEqual(model.region, "us-east-1")
+        self.assertEqual(model.temperature, 0.5)
+        
+        # Verify boto3 client was called with correct parameters
+        self.mock_boto3_client.assert_called_once_with(
+            service_name='bedrock-runtime',
+            region_name='us-east-1'
+        )
+    
+    def test_bedrock_model_with_custom_endpoint(self):
+        """Test BedrockModel with custom endpoint URL."""
+        model = BedrockModel(
+            model="amazon.nova-lite-v1:0",
+            endpoint_url="https://custom-bedrock-endpoint.com",
+            region="us-west-2"
+        )
+        
+        self.assertEqual(model.endpoint_url, "https://custom-bedrock-endpoint.com")
+        self.assertEqual(model.region, "us-west-2")
+        
+        # Verify boto3 client was called with custom endpoint
+        self.mock_boto3_client.assert_called_once_with(
+            service_name='bedrock-runtime',
+            region_name='us-west-2',
+            endpoint_url='https://custom-bedrock-endpoint.com'
+        )
+    
+    def test_model_factory_bedrock_platform(self):
+        """Test model_factory with BEDROCK platform."""
+        model = model_factory(
+            model_id="amazon.nova-micro-v1:0",
+            platform=Platform.BEDROCK,
+            temperature=0.1
+        )
+        
+        self.assertIsInstance(model, BedrockModel)
+        self.assertEqual(model.model, "amazon.nova-micro-v1:0")
+        self.assertEqual(model.temperature, 0.1)
+    
+    def test_get_capability_scoring(self):
+        """Test capability scoring for different models."""
+        # Test Amazon Nova Pro (high capability)
+        model_pro = BedrockModel(model="amazon.nova-pro-v1:0")
+        self.assertEqual(model_pro.get_capability(), 0.9)
+        
+        # Test Amazon Nova Micro (lower capability)
+        model_micro = BedrockModel(model="amazon.nova-micro-v1:0")
+        self.assertEqual(model_micro.get_capability(), 0.5)
+        
+        # Test Claude 3.5 Sonnet (highest capability)
+        model_claude = BedrockModel(model="anthropic.claude-3-5-sonnet-20241022-v2:0")
+        self.assertEqual(model_claude.get_capability(), 1.0)
+        
+        # Test fallback for unknown model
+        model_unknown = BedrockModel(model="unknown.model")
+        self.assertEqual(model_unknown.get_capability(), 0.5)
+    
+    def test_message_conversion(self):
+        """Test message conversion to Bedrock format."""
+        model = BedrockModel(model="amazon.nova-pro-v1:0")
+        
+        messages = [
+            Message(role=Role.SYSTEM, content="You are a helpful assistant."),
+            Message(role=Role.USER, content="Hello, how are you?"),
+            Message(role=Role.ASSISTANT, content="I'm doing well, thank you!")
+        ]
+        
+        bedrock_format = model._convert_messages_to_bedrock_format(messages)
+        
+        # Verify structure
+        self.assertIn("messages", bedrock_format)
+        self.assertIn("system", bedrock_format)
+        self.assertIn("max_tokens", bedrock_format)
+        self.assertIn("temperature", bedrock_format)
+        
+        # Verify system message is separate
+        self.assertEqual(len(bedrock_format["system"]), 1)
+        self.assertEqual(bedrock_format["system"][0]["text"], "You are a helpful assistant.")
+        
+        # Verify conversation messages
+        self.assertEqual(len(bedrock_format["messages"]), 2)
+        self.assertEqual(bedrock_format["messages"][0]["role"], "user")
+        self.assertEqual(bedrock_format["messages"][1]["role"], "assistant")
 
 
 if __name__ == "__main__":

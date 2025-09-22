@@ -179,6 +179,10 @@ def model_factory(
             api_key="sk-no-api-key-required" if api_key is None else api_key,
             temperature=temperature,
         )
+    elif platform == Platform.BEDROCK:
+        from tau_bench.model_utils.model.bedrock import BedrockModel
+
+        return BedrockModel(model=model_id, temperature=temperature)
     else:
         if base_url is None:
             raise ValueError("base_url must be provided for custom models")
