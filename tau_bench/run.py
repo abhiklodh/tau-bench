@@ -10,7 +10,7 @@ from typing import List, Dict, Any
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-from tau_bench.envs import get_env
+from tau_bench.envs import get_env, get_available_environments
 from tau_bench.agents.base import Agent
 from tau_bench.types import EnvRunResult, RunConfig
 from litellm import provider_list
@@ -18,7 +18,8 @@ from tau_bench.envs.user import UserStrategy
 
 
 def run(config: RunConfig) -> List[EnvRunResult]:
-    assert config.env in ["retail", "airline"], "Only retail and airline envs are supported"
+    available_envs = get_available_environments()
+    assert config.env in available_envs, f"Environment '{config.env}' not supported. Available environments: {available_envs}"
     assert config.model_provider in provider_list, "Invalid model provider"
     assert config.user_model_provider in provider_list, "Invalid user model provider"
     assert config.agent_strategy in ["tool-calling", "act", "react", "few-shot"], "Invalid agent strategy"

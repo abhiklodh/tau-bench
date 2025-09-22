@@ -9,12 +9,14 @@ from tau_bench.envs.airline.tasks_test import TASKS as AIRLINE_TASKS
 from tau_bench.envs.retail.tasks_test import TASKS_TEST as RETAIL_TASKS
 from tau_bench.model_utils.args import api_parser
 from tau_bench.types import Task, Action
+from tau_bench.envs import get_available_environments
 from typing import List, Dict, Any
 from concurrent.futures import ThreadPoolExecutor
 
 def get_args() -> argparse.Namespace:
     parser = api_parser()
-    parser.add_argument("--env", type=str, required=True, choices=["airline", "retail"], help="The environment that the original trajectories are from (used to fetch the user instructions)")
+    available_envs = get_available_environments()
+    parser.add_argument("--env", type=str, required=True, choices=available_envs, help="The environment that the original trajectories are from (used to fetch the user instructions)")
     parser.add_argument("--results-path", type=str, help="Path to the results file")
     parser.add_argument("--max-concurrency", type=int, default=1, help="Maximum number of concurrent API calls")
     parser.add_argument("--output-path", type=str, required=True, help="Path to the output file")
