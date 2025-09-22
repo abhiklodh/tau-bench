@@ -1,8 +1,6 @@
-# τ-bench: A Domain-Agnostic Benchmark for Tool-Agent-User Interaction
+# τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains
 
-**❗News**: τ-bench is now **completely domain-agnostic**! Create custom domains for virtually any use case - from healthcare to finance, education to entertainment. Support for AWS Bedrock/Nova models included.
-
-**Previous News**: We have released [τ²-bench](https://github.com/sierra-research/tau2-bench) as an extension of $\tau$-bench. $\tau^2$-bench includes code fixes and an additional `telecom` domain focusing on troubleshooting scenarios. Please use the $\tau^2$-bench as the latest version of this benchmark.
+**❗News**: We have released [τ²-bench](https://github.com/sierra-research/tau2-bench) as an extension of $\tau$-bench. $\tau^2$-bench includes code fixes and an additional `telecom` domain focusing on troubleshooting scenarios. Please use the $\tau^2$-bench as the latest version of this benchmark.
 
 **Paper**:
 * [τ-bench: A Benchmark for Tool-Agent-User Interaction in Real-World Domains](https://arxiv.org/abs/2406.12045)
@@ -10,55 +8,9 @@
 
 We propose $\tau$-bench, a benchmark emulating dynamic conversations between a user (simulated by language models) and a language agent provided with domain-specific API tools and policy guidelines.
 
-## 🚀 New Features
-
-- **Domain-Agnostic Architecture**: Create custom domains with simple YAML configuration
-- **AWS Bedrock Support**: Full support for Amazon Nova and other Bedrock models
-- **Plugin System**: Easy tool and domain registration
-- **Backward Compatibility**: All existing functionality preserved
-- **Extensible Framework**: Add new domains without code changes
-
-## Quick Start
-
-### Built-in Domains
-
-Run τ-bench with built-in domains (retail, airline):
-
-```bash
-python run.py --agent-strategy tool-calling --env retail --model gpt-4o --model-provider openai --user-model gpt-4o --user-model-provider openai --user-strategy llm --max-concurrency 10
-```
-
-### Custom Domains
-
-Create and run with custom domains:
-
-```bash
-# List available domains
-python run.py --list-domains
-
-# Run with custom domain
-python run.py --env healthcare --domain-config-path examples/healthcare_domain/domain.yaml --model gpt-4o --model-provider openai --user-model gpt-4o --user-model-provider openai --user-strategy llm
-```
-
-### AWS Bedrock/Nova Models
-
-```bash
-# Using Amazon Nova Pro
-python run.py --env retail --model bedrock/amazon.nova-pro-v1:0 --model-provider bedrock --user-model bedrock/amazon.nova-lite-v1:0 --user-model-provider bedrock --user-strategy llm
-```
-
-## Available Domains
-
-- **retail**: E-commerce customer service scenarios
-- **airline**: Travel and booking support scenarios  
-- **healthcare**: Patient support and appointment management (example)
-- **[Create your own]**: See [Domain Creation Guide](docs/DOMAIN_CREATION_GUIDE.md)
-
 ## Leaderboard
 
-### Built-in Domains
-
-#### Airline
+### Airline
 
 | Strategy       | Pass^1 | Pass^2 | Pass^3 | Pass^4 |
 | -------------- | ------ | ------ | ------ | ------ |
@@ -70,7 +22,7 @@ python run.py --env retail --model bedrock/amazon.nova-pro-v1:0 --model-provider
 | [Act](https://arxiv.org/abs/2210.03629) (gpt-4o)     | 0.365 | 0.217 | 0.160 | 0.140     |
 | [ReAct](https://arxiv.org/abs/2210.03629) (gpt-4o)     | 0.325 | 0.233 | 0.185 | 0.160     |
 
-#### Retail
+### Retail
 
 | Strategy       | Pass^1 | Pass^2 | Pass^3 | Pass^4 |
 | -------------- | ------ | ------ | ------ | ------ |
@@ -98,25 +50,13 @@ git clone https://github.com/sierra-research/tau-bench && cd ./tau-bench
 pip install -e .
 ```
 
-3. Set up your API keys as environment variables:
+3. Set up your OpenAI / Anthropic / Google / Mistral / AnyScale API keys as environment variables.
 
 ```bash
-# OpenAI
-export OPENAI_API_KEY=...
-
-# Anthropic
-export ANTHROPIC_API_KEY=...
-
-# Google
-export GOOGLE_API_KEY=...
-
-# Mistral
-export MISTRAL_API_KEY=...
-
-# AWS Bedrock (for Nova models)
-export AWS_ACCESS_KEY_ID=...
-export AWS_SECRET_ACCESS_KEY=...
-export AWS_REGION=us-east-1
+OPENAI_API_KEY=...
+ANTHROPIC_API_KEY=...
+GOOGLE_API_KEY=...
+MISTRAL_API_KEY=...
 ```
 
 ## Run
@@ -129,19 +69,7 @@ python run.py --agent-strategy tool-calling --env retail --model gpt-4o --model-
 
 Set max concurrency according to your API limit(s).
 
-## Advanced Usage
-
-### Creating Custom Domains
-
-See the [Domain Creation Guide](docs/DOMAIN_CREATION_GUIDE.md) for detailed instructions on creating your own domains.
-
-### AWS Bedrock Models
-
-See [AWS Bedrock Support](docs/AWS_BEDROCK_SUPPORT.md) for setup and usage instructions.
-
-### Running Specific Tasks
-
-To run specific tasks, use the `--task-ids` flag:
+To run specific tasks, use the `--task-ids` flag. For example:
 
 ```bash
 python run.py --agent-strategy tool-calling --env retail --model gpt-4o --model-provider openai --user-model gpt-4o --user-model-provider openai --user-strategy llm --max-concurrency 10 --task-ids 2 4 6
