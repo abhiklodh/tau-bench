@@ -77,7 +77,7 @@ class Env(object):
 
     def reset(self, task_index: Optional[int] = None) -> EnvResetResponse:
         if task_index is None:
-            task_index = random.randint(0, len(self.tasks) - 1) if tasks else 0
+            task_index = random.randint(0, len(self.tasks) - 1) if self.tasks else 0
         self.task_index = task_index
         self.data = self.data_load_func()
         self.task = self.tasks[task_index]
