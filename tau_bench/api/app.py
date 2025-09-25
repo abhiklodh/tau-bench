@@ -117,7 +117,7 @@ async def global_exception_handler(request, exc):
     
     return JSONResponse(
         status_code=500,
-        content=error_response.dict()
+        content=error_response.model_dump()
     )
 
 
@@ -184,8 +184,8 @@ async def validate_tasks(
         # Log the validation request for audit purposes
         background_tasks.add_task(
             _log_validation_request,
-            request.dict(),
-            result.dict()
+            request.model_dump(),
+            result.model_dump()
         )
         
         return result
@@ -197,7 +197,7 @@ async def validate_tasks(
             message=str(e),
             timestamp=datetime.now().isoformat()
         )
-        raise HTTPException(status_code=400, detail=error_response.dict())
+        raise HTTPException(status_code=400, detail=error_response.model_dump())
 
 
 @app.post("/api/v1/list-tasks", response_model=TaskListResponse)
@@ -231,7 +231,7 @@ async def list_tasks(request: TaskListRequest) -> TaskListResponse:
             message=str(e),
             timestamp=datetime.now().isoformat()
         )
-        raise HTTPException(status_code=400, detail=error_response.dict())
+        raise HTTPException(status_code=400, detail=error_response.model_dump())
 
 
 async def _log_validation_request(request_data: dict, response_data: dict):

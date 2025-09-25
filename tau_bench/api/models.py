@@ -1,6 +1,6 @@
 # Copyright Sierra
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Any, Optional, Union
 from enum import Enum
 import uuid
@@ -63,9 +63,9 @@ class TaskValidationRequest(BaseModel):
     # Optional advanced settings
     few_shot_displays_path: Optional[str] = Field(None, description="Path to few-shot examples file")
     
-    @validator('end_index')
-    def validate_end_index(cls, v, values):
-        if v != -1 and 'start_index' in values and v <= values['start_index']:
+    @field_validator('end_index')
+    def validate_end_index(cls, v, info):
+        if v != -1 and info.data and 'start_index' in info.data and v <= info.data['start_index']:
             raise ValueError("end_index must be greater than start_index or -1")
         return v
 

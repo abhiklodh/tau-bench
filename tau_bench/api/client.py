@@ -124,7 +124,7 @@ class TauBenchAPIClient:
         
         response = self.session.post(
             f"{self.base_url}/api/v1/validate-tasks",
-            json=request_data.dict(),
+            json=request_data.model_dump(),
             timeout=self.timeout
         )
         response.raise_for_status()
@@ -153,7 +153,7 @@ class TauBenchAPIClient:
         
         response = self.session.post(
             f"{self.base_url}/api/v1/list-tasks",
-            json=request_data.dict(),
+            json=request_data.model_dump(),
             timeout=self.timeout
         )
         response.raise_for_status()

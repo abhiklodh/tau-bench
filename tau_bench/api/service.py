@@ -108,7 +108,7 @@ class TauBenchAPIService:
                 status="failed",
                 execution_time_seconds=time.time() - start_time,
                 timestamp=timestamp,
-                config_used=request.dict(),
+                config_used=request.model_dump(),
                 errors=validation_errors
             )
         
@@ -136,7 +136,7 @@ class TauBenchAPIService:
                 metrics=metrics,
                 execution_time_seconds=execution_time,
                 timestamp=timestamp,
-                config_used=request.dict()
+                config_used=request.model_dump()
             )
             
             logger.info(f"Task validation completed successfully in {execution_time:.2f}s")
@@ -151,7 +151,7 @@ class TauBenchAPIService:
                 status="failed",
                 execution_time_seconds=execution_time,
                 timestamp=timestamp,
-                config_used=request.dict(),
+                config_used=request.model_dump(),
                 errors=[error_msg]
             )
     
