@@ -15,6 +15,7 @@ from tau_bench.agents.base import Agent
 from tau_bench.types import EnvRunResult, RunConfig
 from litellm import provider_list
 from tau_bench.envs.user import UserStrategy
+from tau_bench.validate_environments import validate_environment
 
 
 def run(config: RunConfig) -> List[EnvRunResult]:
@@ -24,6 +25,17 @@ def run(config: RunConfig) -> List[EnvRunResult]:
     assert config.agent_strategy in ["tool-calling", "act", "react", "few-shot"], "Invalid agent strategy"
     assert config.task_split in ["train", "test", "dev"], "Invalid task split"
     assert config.user_strategy in [item.value for item in UserStrategy], "Invalid user strategy"
+
+    # Validate environment before running tests
+    print(f"\n🔍 Validating {config.env} environment before model testing...")
+    validation_success = validate_environment(config.env)
+    
+    if not validation_success:
+        print(f"\n❌ Environment validation failed for {config.env}! Aborting model testing.")
+        print("Please fix the environment issues before running model tests.")
+        return []
+    
+    print(f"✅ {config.env.capitalize()} environment validation passed! Proceeding with model testing...\n")
 
     random.seed(config.seed)
     time_str = datetime.now().strftime("%m%d%H%M%S")
