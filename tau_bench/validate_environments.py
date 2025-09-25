@@ -47,9 +47,14 @@ def run_environment_tests(env_names: List[str]) -> Dict[str, bool]:
                 print(f"✅ {env_name.capitalize()} environment validation PASSED")
             else:
                 print(f"❌ {env_name.capitalize()} environment validation FAILED")
+                print(f"   Please fix the {env_name} environment issues before running model tests.")
                 
+        except ImportError as e:
+            print(f"❌ Error importing {env_name} test module: {str(e)}")
+            print(f"   Make sure test_tools.py exists in tau_bench/envs/{env_name}/")
+            results[env_name] = False
         except Exception as e:
-            print(f"❌ Error validating {env_name} environment: {str(e)}")
+            print(f"❌ Unexpected error validating {env_name} environment: {str(e)}")
             print("Full traceback:")
             traceback.print_exc()
             results[env_name] = False
@@ -67,6 +72,11 @@ def validate_environment(env_name: str) -> bool:
     Returns:
         True if validation passes, False otherwise
     """
+    if env_name not in ["healthcare", "retail", "airline"]:
+        print(f"❌ Unknown environment: {env_name}")
+        print("   Valid environments: healthcare, retail, airline")
+        return False
+    
     results = run_environment_tests([env_name])
     return results.get(env_name, False)
 
@@ -91,7 +101,14 @@ def validate_all_environments() -> Tuple[bool, Dict[str, bool]]:
         status = "✅ PASSED" if passed else "❌ FAILED"
         print(f"{env_name.capitalize():12}: {status}")
     
-    print(f"\nOverall result: {'✅ ALL PASSED' if all_passed else '❌ SOME FAILED'}")
+    if all_passed:
+        print(f"\n🎉 Overall result: ✅ ALL ENVIRONMENTS PASSED")
+        print("   All environments are ready for model testing!")
+    else:
+        failed_envs = [env for env, passed in results.items() if not passed]
+        print(f"\n⚠️  Overall result: ❌ SOME ENVIRONMENTS FAILED")
+        print(f"   Failed environments: {', '.join(failed_envs)}")
+        print("   Please fix the issues above before running model tests.")
     
     return all_passed, results
 
@@ -107,8 +124,11 @@ def main():
             all_passed, _ = validate_all_environments()
             sys.exit(0 if all_passed else 1)
         else:
-            print(f"Unknown environment: {env_name}")
-            print("Usage: python validate_environments.py [healthcare|retail|airline|all]")
+            print(f"❌ Unknown environment: {env_name}")
+            print("   Usage: python validate_environments.py [healthcare|retail|airline|all]")
+            print("   Examples:")
+            print("     python validate_environments.py healthcare")
+            print("     python validate_environments.py all")
             sys.exit(1)
     else:
         # Default: validate all environments
