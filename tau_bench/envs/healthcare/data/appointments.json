@@ -1,0 +1,18 @@
+{
+  "APT001": {
+    "patient_id": "PAT001",
+    "doctor": "Dr. Williams",
+    "date": "2025-09-22",
+    "time": "2:00 PM",
+    "type": "General Checkup",
+    "status": "scheduled"
+  },
+  "APT002": {
+    "patient_id": "PAT002",
+    "doctor": "Dr. Brown",
+    "date": "2024-02-16",
+    "time": "2:00 PM",
+    "type": "Follow-up",
+    "status": "scheduled"
+  }
+}
