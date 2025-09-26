@@ -1,66 +1,46 @@
 """
-Retail environment tool validation tests (dummy implementation).
+Retail environment task validation using simplified approach.
 
-This module provides basic dummy tests for the retail domain tools.
-TODO: Implement comprehensive tests similar to healthcare domain.
+This module provides lightweight task validation using:
+1. Syntactic checks via Python compiler
+2. Semantic checks via automatic function invocation
 """
 
-import unittest
-
-
-class TestRetailTools(unittest.TestCase):
-    """Dummy test suite for retail domain tools."""
-    
-    def test_dummy_retail_functionality(self):
-        """Dummy test to ensure retail environment testing framework is ready."""
-        # TODO: Implement actual tool tests for retail domain
-        # This should test tools like product search, cart management, 
-        # order placement, customer service, etc.
-        self.assertTrue(True, "Retail dummy test passes - framework ready")
-    
-    def test_retail_data_loading(self):
-        """Dummy test for retail data loading."""
-        # TODO: Implement actual data loading tests
-        # Should test product catalog, inventory, user profiles, orders, etc.
-        self.assertTrue(True, "Retail data loading test placeholder")
-    
-    def test_retail_tool_schemas(self):
-        """Dummy test for retail tool schemas."""
-        # TODO: Implement actual schema validation tests  
-        # Should verify all retail tools have proper function schemas
-        self.assertTrue(True, "Retail tool schema validation placeholder")
-
-
-class TestRetailDataIntegrity(unittest.TestCase):
-    """Dummy test suite for retail data integrity."""
-    
-    def test_retail_data_completeness(self):
-        """Dummy test for retail data completeness."""
-        # TODO: Implement data integrity tests
-        # Should verify product data, user data, order data completeness
-        self.assertTrue(True, "Retail data completeness check placeholder")
-    
-    def test_retail_data_relationships(self):
-        """Dummy test for retail data relationships."""
-        # TODO: Implement relationship validation tests
-        # Should verify orders reference valid users, products exist, etc.
-        self.assertTrue(True, "Retail data relationships check placeholder")
+from tau_bench.task_validation import TaskValidator, print_validation_summary
+from tau_bench.envs.retail.data import load_data
+from tau_bench.envs.retail.tools import ALL_TOOLS
+from tau_bench.envs.retail.tasks_test import TASKS_TEST
 
 
 def run_retail_tests():
-    """Run all retail environment tests."""
-    loader = unittest.TestLoader()
-    suite = unittest.TestSuite()
+    """Run simplified retail task validation."""
+    print("🔍 Loading retail environment data and tools...")
     
-    # Add all test classes
-    suite.addTests(loader.loadTestsFromTestCase(TestRetailTools))
-    suite.addTests(loader.loadTestsFromTestCase(TestRetailDataIntegrity))
-    
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
-    
-    return result.wasSuccessful()
+    try:
+        # Load data and tools
+        data = load_data()
+        tools = ALL_TOOLS
+        
+        # Create task validator
+        validator = TaskValidator(data, tools)
+        
+        print(f"📋 Validating {len(TASKS_TEST)} retail tasks...")
+        
+        # Validate tasks
+        all_valid, summary = validator.validate_tasks(TASKS_TEST)
+        
+        # Print results
+        print_validation_summary(summary, verbose=True)
+        
+        return all_valid
+        
+    except Exception as e:
+        print(f"❌ Error during retail validation: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 
 if __name__ == "__main__":
-    run_retail_tests()
+    success = run_retail_tests()
+    exit(0 if success else 1)

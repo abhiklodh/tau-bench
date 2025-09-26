@@ -1,8 +1,9 @@
 """
-Environment validation test runner.
+Environment validation test runner using simplified task validation.
 
-This module provides a centralized test runner for validating all environments
-before running model testing. It ensures that tools and data are behaving correctly.
+This module provides a simplified task validation approach that:
+1. Uses syntactic checks via Python compiler for task actions
+2. Uses semantic checks via automatic function invocation with database
 """
 
 import sys
@@ -12,7 +13,7 @@ from typing import Dict, List, Tuple
 
 def run_environment_tests(env_names: List[str]) -> Dict[str, bool]:
     """
-    Run tests for specified environments and return results.
+    Run simplified task validation for specified environments.
     
     Args:
         env_names: List of environment names to test ('healthcare', 'retail', 'airline')

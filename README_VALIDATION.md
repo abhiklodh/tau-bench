@@ -1,15 +1,27 @@
-# Environment Validation Framework
+# Simplified Task Validation Framework
 
-This document describes the environment validation framework added to τ-bench to ensure tools and data are working correctly before running model tests.
+This document describes the simplified task validation framework for τ-bench that validates tasks using syntactic and semantic checks as requested to reduce the complexity and burden on task creators.
 
 ## Overview
 
-The validation framework automatically runs comprehensive tests for each environment (healthcare, retail, airline) before model testing begins. This ensures that:
+The new validation framework automatically validates tasks in each environment (healthcare, retail, airline) using a two-step approach:
 
-- All tools work correctly with the provided test data
-- Tool schemas are properly formatted
+1. **Syntactic Check**: Uses Python compiler to validate task action function calls
+2. **Semantic Check**: Automatically invokes functions with provided database and arguments
+
+This eliminates the need for complex test infrastructure while ensuring that:
+- All task actions are syntactically correct
+- All tools work correctly with the provided arguments 
 - Data integrity is maintained
-- Edge cases and error conditions are handled properly
+- Functions execute without errors
+
+## Benefits
+
+✅ **Much simpler for task creators** - no need to write extensive tests
+✅ **Automatic validation** - based on existing task definitions  
+✅ **Validates actual task functionality** - not just tool schemas
+✅ **Reduced maintenance burden** - no complex test infrastructure
+✅ **Fast execution** - validates 167 tasks across all environments in seconds
 
 ## Usage
 
@@ -20,11 +32,6 @@ Environment validation runs automatically when you use the main run script:
 ```bash
 python run.py --env healthcare --model gpt-4o --model-provider openai ...
 ```
-
-The system will:
-1. ✅ Run validation tests for the specified environment
-2. ✅ Only proceed to model testing if validation passes  
-3. ❌ Abort with clear error messages if validation fails
 
 ### Manual Validation
 
@@ -40,65 +47,73 @@ python -m tau_bench.validate_environments airline
 python -m tau_bench.validate_environments all
 ```
 
-## Test Coverage
+## What Gets Validated
 
-### Healthcare Environment (Comprehensive)
-- **Tools Tested**: 6 tools with 26+ test cases
-  - `GetPatientInfo`: Valid/invalid patient IDs, schema validation
-  - `ScheduleAppointment`: Valid parameters, data persistence
-  - `GetAppointmentDetails`: Patient/appointment ID queries, error cases
-  - `CancelAppointment`: Valid/invalid appointment cancellation
-  - `GetTestResults`: Patient/test ID queries, missing data handling
-  - `TransferToMedicalStaff`: Basic and urgency-level transfers
-- **Data Integrity**: Patient, appointment, and test result data validation
-- **Schema Validation**: All tool function schemas properly formatted
+### For Each Task:
+- **Syntactic validation**: Function calls are parsed and compiled successfully
+- **Semantic validation**: Functions execute with provided arguments and database
+- **Error handling**: Clear reporting of any syntax or runtime errors
 
-### Retail Environment (Dummy Tests)
-- **Status**: Framework ready, placeholder tests implemented
-- **TODO**: Implement comprehensive tool and data validation tests
+### Coverage:
+- **Healthcare**: 2 tasks, 5 total actions
+- **Retail**: 115 tasks, hundreds of actions
+- **Airline**: 50 tasks, hundreds of actions
 
-### Airline Environment (Dummy Tests)  
-- **Status**: Framework ready, placeholder tests implemented
-- **TODO**: Implement comprehensive tool and data validation tests
-
-## Test Results Example
+## Sample Output
 
 ```
 ============================================================
-VALIDATING HEALTHCARE ENVIRONMENT
+VALIDATING RETAIL ENVIRONMENT
 ============================================================
-test_get_patient_info_valid_patient ... ok
-test_get_patient_info_invalid_patient ... ok
-test_schedule_appointment_valid_params ... ok
-test_cancel_appointment_valid ... ok
-[... 22 more tests ...]
+🔍 Loading retail environment data and tools...
+📋 Validating 115 retail tasks...
 
-----------------------------------------------------------------------
-Ran 26 tests in 0.005s
+============================================================
+TASK VALIDATION SUMMARY
+============================================================
+Total tasks: 115
+Valid tasks: 115
+Failed tasks: 0
 
-OK
-✅ Healthcare environment validation PASSED
-✅ Healthcare environment validation passed! Proceeding with model testing...
+🎉 Overall result: ✅ ALL TASKS PASSED
 ```
-
-## Benefits
-
-1. **Early Error Detection**: Catch environment issues before expensive model runs
-2. **Data Integrity**: Ensure test data is complete and properly formatted
-3. **Tool Reliability**: Verify all tools work correctly with edge cases
-4. **Development Safety**: Prevent broken environments from affecting model evaluation
-5. **Clear Diagnostics**: Detailed error reporting when validation fails
 
 ## Implementation Details
 
-- **Test Framework**: Python's built-in `unittest` framework
-- **Test Location**: `tau_bench/envs/{env_name}/test_tools.py`
-- **Integration**: Automatic validation in `tau_bench/run.py`
-- **CLI Tool**: `tau_bench/validate_environments.py`
+### Core Components:
+- **`tau_bench/task_validation.py`**: Core validation logic
+- **Syntactic Validator**: Uses Python AST parsing and compilation
+- **Semantic Validator**: Automatically invokes functions with database
+- **Task Validator**: Combines both validation types
+
+### Integration:
+- **Environment test files**: Updated to use new validation approach
+- **Main validator**: `tau_bench/validate_environments.py` uses new system
+- **CLI interface**: Same command-line interface as before
+
+### Error Reporting:
+- Clear distinction between syntax and semantic errors
+- Detailed error messages for debugging
+- Summary reports showing overall validation status
+
+## Migration from Old System
+
+The old comprehensive testing system has been replaced with this simplified approach:
+
+**Old Approach** (Overkill):
+- Complex unittest infrastructure
+- Manual test case creation
+- Extensive schema validation
+- Tool-focused testing
+
+**New Approach** (Simplified):
+- Automatic task validation
+- Syntactic checks via Python compiler
+- Semantic checks via function execution
+- Task-focused validation
 
 ## Future Enhancements
 
-- Complete comprehensive tests for retail and airline environments
-- Add performance benchmarking for tool execution times
-- Implement data consistency checks across environments
-- Add configurable validation levels (basic, comprehensive)
+- Performance metrics for task validation
+- Integration with CI/CD pipelines
+- Configurable validation levels (syntax-only vs full semantic)
