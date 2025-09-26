@@ -19,7 +19,9 @@ from tau_bench.validate_environments import validate_environment
 
 
 def run(config: RunConfig) -> List[EnvRunResult]:
-    assert config.env in ["retail", "airline", "healthcare"], "Only retail, airline, and healthcare envs are supported"
+    from tau_bench.envs import get_available_environments
+    available_envs = get_available_environments()
+    assert config.env in available_envs, f"Only {', '.join(available_envs)} envs are supported"
     assert config.model_provider in provider_list, "Invalid model provider"
     assert config.user_model_provider in provider_list, "Invalid user model provider"
     assert config.agent_strategy in ["tool-calling", "act", "react", "few-shot"], "Invalid agent strategy"

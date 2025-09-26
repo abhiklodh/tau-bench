@@ -14,52 +14,34 @@ from tau_bench.task_validation import TaskValidator, print_validation_summary
 
 def get_environment_data(env_name: str, task_split: str = "test") -> tuple[Any, List[Any], List[Any]]:
     """
-    Load data, tools, and tasks for a specific environment.
+    Load data, tools, and tasks for a specific environment using the factory pattern.
     
     Args:
-        env_name: Name of the environment ('healthcare', 'retail', 'airline')
+        env_name: Name of the environment (dynamically discovered)
         task_split: Task split to load ('test', 'train', 'dev')
         
     Returns:
         Tuple of (data, tools, tasks)
     """
-    if env_name == "healthcare":
-        from tau_bench.envs.healthcare.data import load_data
-        from tau_bench.envs.healthcare.tools import ALL_TOOLS
+    from tau_bench.envs import get_env
+    
+    try:
+        # Create a temporary environment instance to get its data, tools, and tasks
+        # Use 'human' user strategy to avoid API key requirements during validation
+        env = get_env(env_name, 'human', 'gpt-4o', task_split)
         
-        # Healthcare only has 'test' tasks currently
-        from tau_bench.envs.healthcare.tasks import TASKS
-        return load_data(), ALL_TOOLS, TASKS
+        # Extract the components from the environment
+        data = env.data
+        tools = list(env.tools_map.values())  # Convert tools_map values to list
+        tasks = env.tasks
         
-    elif env_name == "retail":
-        from tau_bench.envs.retail.data import load_data
-        from tau_bench.envs.retail.tools import ALL_TOOLS
+        return data, tools, tasks
         
-        # Retail has different task splits
-        if task_split == "test":
-            from tau_bench.envs.retail.tasks_test import TASKS_TEST
-            tasks = TASKS_TEST
-        elif task_split == "train":
-            from tau_bench.envs.retail.tasks_train import TASKS_TRAIN
-            tasks = TASKS_TRAIN
-        elif task_split == "dev":
-            from tau_bench.envs.retail.tasks_dev import TASKS_DEV
-            tasks = TASKS_DEV
-        else:
-            raise ValueError(f"Unknown task split '{task_split}' for retail environment")
-        
-        return load_data(), ALL_TOOLS, tasks
-        
-    elif env_name == "airline":
-        from tau_bench.envs.airline.data import load_data
-        from tau_bench.envs.airline.tools import ALL_TOOLS
-        
-        # Airline only has 'test' tasks currently
-        from tau_bench.envs.airline.tasks_test import TASKS
-        return load_data(), ALL_TOOLS, TASKS
-        
-    else:
-        raise ValueError(f"Unknown environment: {env_name}")
+    except Exception as e:
+        # Provide helpful error message with available environments
+        from tau_bench.envs import get_available_environments
+        available_envs = ', '.join(get_available_environments())
+        raise ValueError(f"Failed to load environment '{env_name}': {e}. Available environments: {available_envs}")
 
 
 def run_environment_validation(
@@ -132,7 +114,8 @@ def run_all_environments_validation(
     Returns:
         Dictionary mapping environment names to validation results
     """
-    env_names = envs or ["healthcare", "retail", "airline"]
+    from tau_bench.envs import get_available_environments
+    env_names = envs or get_available_environments()
     results = {}
     
     for env_name in env_names:
@@ -179,14 +162,20 @@ def run_all_environments_validation(
 
 def main():
     """Command line interface for generic environment validation."""
+    from tau_bench.envs import get_available_environments
+    
+    # Get available environments dynamically
+    available_envs = get_available_environments()
+    env_choices = available_envs + ["all"]
+    
     parser = argparse.ArgumentParser(
         description="Generic task validation for tau-bench environments",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
+        epilog=f"""
 Examples:
   python -m tau_bench.test_tools                    # Validate all environments
-  python -m tau_bench.test_tools healthcare         # Validate healthcare only
-  python -m tau_bench.test_tools --env retail       # Validate retail only
+  python -m tau_bench.test_tools {available_envs[0] if available_envs else 'env_name'}         # Validate {available_envs[0] if available_envs else 'environment'} only
+  python -m tau_bench.test_tools --env {available_envs[1] if len(available_envs) > 1 else (available_envs[0] if available_envs else 'env_name')}       # Validate {available_envs[1] if len(available_envs) > 1 else (available_envs[0] if available_envs else 'environment')} only
   python -m tau_bench.test_tools --max-tasks 10     # Limit to 10 tasks per env
   python -m tau_bench.test_tools --skip-semantics   # Syntax validation only
   python -m tau_bench.test_tools --task-split train # Use training tasks
@@ -196,14 +185,14 @@ Examples:
     parser.add_argument(
         "environment",
         nargs="?",
-        choices=["healthcare", "retail", "airline", "all"],
+        choices=env_choices,
         default="all",
         help="Environment to validate (default: all)"
     )
     
     parser.add_argument(
         "--env",
-        choices=["healthcare", "retail", "airline"],
+        choices=available_envs,
         help="Alternative way to specify environment"
     )
     

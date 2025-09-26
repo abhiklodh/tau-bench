@@ -8,10 +8,12 @@ from tau_bench.envs.user import UserStrategy
 
 
 def parse_args() -> RunConfig:
+    from tau_bench.envs import get_available_environments
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("--num-trials", type=int, default=1)
     parser.add_argument(
-        "--env", type=str, choices=["retail", "airline", "healthcare"], default="retail"
+        "--env", type=str, choices=get_available_environments(), default=get_available_environments()[0] if get_available_environments() else "retail"
     )
     parser.add_argument(
         "--model",
