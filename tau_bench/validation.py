@@ -1,6 +1,37 @@
 # Copyright Sierra
 
-"""Generic task validation module for syntactic and semantic checks."""
+"""
+Generic task validation module for syntactic and semantic checks.
+
+This module provides a centralized validation system that can be used across all 
+environments in tau-bench. It eliminates the need for environment-specific test_tools.py 
+files by providing generic validation logic that works with any environment.
+
+Key Features:
+- Syntactic validation: Checks if database changes match expected state
+- Semantic validation: Checks if required outputs are present in agent responses  
+- Generic design: Works with any environment without modification
+- Centralized logic: All validation code is in one place
+
+Example Usage:
+    # Initialize validator for your environment
+    validator = TaskValidator(
+        data_load_func=your_data_loader,
+        tools_map=your_tools_map,
+        terminate_tools=["transfer_to_human_agents"]
+    )
+    
+    # Validate a completed task
+    result = validator.validate_task(
+        task=task,
+        agent_actions=agent_actions,
+        current_data=current_env_data
+    )
+    
+    # Check reward and detailed info
+    print(f"Reward: {result.reward}")
+    print(f"Info: {result.info}")
+"""
 
 from hashlib import sha256
 from typing import Any, Dict, List, Set, Tuple, Union, Callable
