@@ -1,0 +1,61 @@
+{
+  "oncall_engineer_1": {
+    "id": "oncall_engineer_1",
+    "name": "Alice Chen",
+    "email": "alice.chen@example.com",
+    "phone": "+1-555-0101",
+    "slack_handle": "@alice.chen",
+    "teams": ["payments-team", "identity-team", "communications-team"],
+    "expertise": ["Java", "Kubernetes", "PostgreSQL", "Spring Boot"],
+    "timezone": "America/New_York",
+    "shift": "primary",
+    "current_incidents": ["INC002"]
+  },
+  "oncall_engineer_2": {
+    "id": "oncall_engineer_2",
+    "name": "Bob Martinez",
+    "email": "bob.martinez@example.com",
+    "phone": "+1-555-0102",
+    "slack_handle": "@bob.martinez",
+    "teams": ["platform-team", "commerce-team"],
+    "expertise": ["Go", "Kubernetes", "Terraform", "AWS"],
+    "timezone": "America/Los_Angeles",
+    "shift": "backup",
+    "current_incidents": []
+  },
+  "oncall_engineer_3": {
+    "id": "oncall_engineer_3",
+    "name": "Carol Johnson",
+    "email": "carol.johnson@example.com",
+    "phone": "+1-555-0103",
+    "slack_handle": "@carol.johnson",
+    "teams": ["data-platform-team"],
+    "expertise": ["PostgreSQL", "Redis", "Cassandra", "Database Administration"],
+    "timezone": "America/Chicago",
+    "shift": "secondary",
+    "current_incidents": []
+  },
+  "senior_engineer_1": {
+    "id": "senior_engineer_1",
+    "name": "David Kim",
+    "email": "david.kim@example.com",
+    "phone": "+1-555-0201",
+    "slack_handle": "@david.kim",
+    "teams": ["payments-team"],
+    "expertise": ["Payment Systems", "PCI Compliance", "Java", "Architecture"],
+    "timezone": "America/New_York",
+    "shift": "escalation",
+    "current_incidents": []
+  },
+  "manager_1": {
+    "id": "manager_1",
+    "name": "Emily White",
+    "email": "emily.white@example.com",
+    "phone": "+1-555-0301",
+    "slack_handle": "@emily.white",
+    "teams": ["engineering-leadership"],
+    "role": "Engineering Manager",
+    "timezone": "America/New_York",
+    "shift": "escalation"
+  }
+}

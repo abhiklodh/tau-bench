@@ -1,0 +1,117 @@
+{
+  "INC001": {
+    "id": "INC001",
+    "title": "Database Connection Pool Exhausted",
+    "service": "payment-service",
+    "severity": "P1",
+    "status": "open",
+    "created_at": "2024-05-15T10:30:00Z",
+    "updated_at": "2024-05-15T10:30:00Z",
+    "description": "Payment service is experiencing high latency due to database connection pool exhaustion. Error rate spiking to 15%.",
+    "alerts": ["ALT001", "ALT002"],
+    "assigned_to": null,
+    "timeline": [
+      {"timestamp": "2024-05-15T10:30:00Z", "event": "Incident created from alert ALT001"},
+      {"timestamp": "2024-05-15T10:31:00Z", "event": "Alert ALT002 correlated to this incident"}
+    ],
+    "related_runbook": "RB001",
+    "affected_customers": 1500,
+    "error_rate": 15.2,
+    "response_time_p99_ms": 8500
+  },
+  "INC002": {
+    "id": "INC002",
+    "title": "Memory Leak in User Service",
+    "service": "user-service",
+    "severity": "P2",
+    "status": "investigating",
+    "created_at": "2024-05-15T08:00:00Z",
+    "updated_at": "2024-05-15T09:45:00Z",
+    "description": "User service pods are experiencing gradual memory increase, approaching OOM threshold. Current memory at 85% across all pods.",
+    "alerts": ["ALT003"],
+    "assigned_to": "oncall_engineer_1",
+    "timeline": [
+      {"timestamp": "2024-05-15T08:00:00Z", "event": "Incident created from alert ALT003"},
+      {"timestamp": "2024-05-15T08:15:00Z", "event": "Assigned to oncall_engineer_1"},
+      {"timestamp": "2024-05-15T09:00:00Z", "event": "Investigation started - checking recent deployments"},
+      {"timestamp": "2024-05-15T09:45:00Z", "event": "Suspected memory leak in authentication module"}
+    ],
+    "related_runbook": "RB002",
+    "memory_usage_percent": 85,
+    "pods_affected": 4
+  },
+  "INC003": {
+    "id": "INC003",
+    "title": "API Gateway Timeout Errors",
+    "service": "api-gateway",
+    "severity": "P1",
+    "status": "open",
+    "created_at": "2024-05-15T11:00:00Z",
+    "updated_at": "2024-05-15T11:00:00Z",
+    "description": "API Gateway experiencing timeout errors for 30% of requests. Multiple downstream services affected.",
+    "alerts": ["ALT004", "ALT005"],
+    "assigned_to": null,
+    "timeline": [
+      {"timestamp": "2024-05-15T11:00:00Z", "event": "Incident created from multiple timeout alerts"}
+    ],
+    "related_runbook": "RB003",
+    "affected_endpoints": ["/api/v1/orders", "/api/v1/users", "/api/v1/products"],
+    "timeout_rate": 30.5
+  },
+  "INC004": {
+    "id": "INC004",
+    "title": "Certificate Expiration Warning",
+    "service": "cdn-service",
+    "severity": "P3",
+    "status": "open",
+    "created_at": "2024-05-14T14:00:00Z",
+    "updated_at": "2024-05-14T14:00:00Z",
+    "description": "SSL certificate for cdn.example.com will expire in 7 days. Requires renewal.",
+    "alerts": ["ALT006"],
+    "assigned_to": null,
+    "timeline": [
+      {"timestamp": "2024-05-14T14:00:00Z", "event": "Certificate expiration alert triggered"}
+    ],
+    "related_runbook": "RB004",
+    "certificate_expiry": "2024-05-22T00:00:00Z"
+  },
+  "INC005": {
+    "id": "INC005",
+    "title": "Disk Space Critical on Database Server",
+    "service": "database-cluster",
+    "severity": "P2",
+    "status": "resolved",
+    "created_at": "2024-05-14T06:00:00Z",
+    "updated_at": "2024-05-14T08:30:00Z",
+    "description": "Database server db-primary-01 disk usage at 92%. Resolved by cleaning up old logs and archived data.",
+    "alerts": ["ALT007"],
+    "assigned_to": "oncall_engineer_2",
+    "timeline": [
+      {"timestamp": "2024-05-14T06:00:00Z", "event": "Incident created from disk space alert"},
+      {"timestamp": "2024-05-14T06:15:00Z", "event": "Assigned to oncall_engineer_2"},
+      {"timestamp": "2024-05-14T07:00:00Z", "event": "Started cleanup of old log files"},
+      {"timestamp": "2024-05-14T08:00:00Z", "event": "Archived data moved to cold storage"},
+      {"timestamp": "2024-05-14T08:30:00Z", "event": "Disk usage reduced to 65%, incident resolved"}
+    ],
+    "related_runbook": "RB005",
+    "resolution": "Cleaned up 500GB of old logs and archived data to cold storage"
+  },
+  "INC006": {
+    "id": "INC006",
+    "title": "High CPU Usage on Order Processing Workers",
+    "service": "order-service",
+    "severity": "P2",
+    "status": "open",
+    "created_at": "2024-05-15T12:00:00Z",
+    "updated_at": "2024-05-15T12:00:00Z",
+    "description": "Order processing workers showing sustained CPU usage above 90%. Queue backlog growing.",
+    "alerts": ["ALT008"],
+    "assigned_to": null,
+    "timeline": [
+      {"timestamp": "2024-05-15T12:00:00Z", "event": "High CPU alert triggered for order-service workers"}
+    ],
+    "related_runbook": "RB006",
+    "cpu_usage_percent": 92,
+    "queue_backlog": 15000
+  }
+}

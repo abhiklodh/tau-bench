@@ -1,0 +1,139 @@
+{
+  "ALT001": {
+    "id": "ALT001",
+    "name": "Payment Service High Latency",
+    "severity": "critical",
+    "status": "firing",
+    "service": "payment-service",
+    "triggered_at": "2024-05-15T10:28:00Z",
+    "description": "Payment service p99 latency exceeded 5000ms threshold",
+    "metric": "http_request_duration_seconds_p99",
+    "current_value": 8.5,
+    "threshold": 5.0,
+    "labels": {
+      "service": "payment-service",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  },
+  "ALT002": {
+    "id": "ALT002",
+    "name": "Payment Service Error Rate High",
+    "severity": "critical",
+    "status": "firing",
+    "service": "payment-service",
+    "triggered_at": "2024-05-15T10:29:00Z",
+    "description": "Payment service error rate exceeded 5% threshold",
+    "metric": "http_requests_errors_total / http_requests_total",
+    "current_value": 15.2,
+    "threshold": 5.0,
+    "labels": {
+      "service": "payment-service",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  },
+  "ALT003": {
+    "id": "ALT003",
+    "name": "User Service Memory High",
+    "severity": "warning",
+    "status": "firing",
+    "service": "user-service",
+    "triggered_at": "2024-05-15T07:55:00Z",
+    "description": "User service memory usage exceeded 80% threshold",
+    "metric": "container_memory_usage_bytes / container_spec_memory_limit_bytes",
+    "current_value": 85,
+    "threshold": 80,
+    "labels": {
+      "service": "user-service",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  },
+  "ALT004": {
+    "id": "ALT004",
+    "name": "API Gateway Timeout Rate High",
+    "severity": "critical",
+    "status": "firing",
+    "service": "api-gateway",
+    "triggered_at": "2024-05-15T10:58:00Z",
+    "description": "API Gateway timeout rate exceeded 10% threshold",
+    "metric": "http_requests_timeout_total / http_requests_total",
+    "current_value": 30.5,
+    "threshold": 10.0,
+    "labels": {
+      "service": "api-gateway",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  },
+  "ALT005": {
+    "id": "ALT005",
+    "name": "API Gateway P99 Latency High",
+    "severity": "warning",
+    "status": "firing",
+    "service": "api-gateway",
+    "triggered_at": "2024-05-15T10:59:00Z",
+    "description": "API Gateway p99 latency exceeded 2000ms threshold",
+    "metric": "http_request_duration_seconds_p99",
+    "current_value": 2.5,
+    "threshold": 2.0,
+    "labels": {
+      "service": "api-gateway",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  },
+  "ALT006": {
+    "id": "ALT006",
+    "name": "SSL Certificate Expiring Soon",
+    "severity": "warning",
+    "status": "firing",
+    "service": "cdn-service",
+    "triggered_at": "2024-05-14T14:00:00Z",
+    "description": "SSL certificate for cdn.example.com expires in 7 days",
+    "metric": "ssl_certificate_expiry_seconds",
+    "current_value": 604800,
+    "threshold": 1209600,
+    "labels": {
+      "service": "cdn-service",
+      "domain": "cdn.example.com",
+      "environment": "production"
+    }
+  },
+  "ALT007": {
+    "id": "ALT007",
+    "name": "Database Disk Space Critical",
+    "severity": "warning",
+    "status": "resolved",
+    "service": "database-cluster",
+    "triggered_at": "2024-05-14T05:55:00Z",
+    "resolved_at": "2024-05-14T08:30:00Z",
+    "description": "Database server db-primary-01 disk usage exceeded 90% threshold",
+    "metric": "node_filesystem_avail_bytes / node_filesystem_size_bytes",
+    "current_value": 65,
+    "threshold": 90,
+    "labels": {
+      "service": "database-cluster",
+      "host": "db-primary-01",
+      "environment": "production"
+    }
+  },
+  "ALT008": {
+    "id": "ALT008",
+    "name": "Order Service CPU High",
+    "severity": "warning",
+    "status": "firing",
+    "service": "order-service",
+    "triggered_at": "2024-05-15T11:55:00Z",
+    "description": "Order service CPU usage exceeded 85% threshold",
+    "metric": "container_cpu_usage_seconds_total",
+    "current_value": 92,
+    "threshold": 85,
+    "labels": {
+      "service": "order-service",
+      "environment": "production",
+      "region": "us-east-1"
+    }
+  }
+}
