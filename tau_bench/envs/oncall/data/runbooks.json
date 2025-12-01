@@ -1,0 +1,359 @@
+{
+  "RB001": {
+    "id": "RB001",
+    "title": "Database Connection Pool Exhaustion",
+    "service": "payment-service",
+    "severity": ["P1", "P2"],
+    "symptoms": [
+      "High latency on database queries",
+      "Connection timeout errors in logs",
+      "Increased error rate on payment endpoints",
+      "Database connection pool metrics showing near-max usage"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check database connection pool metrics",
+        "command": "kubectl exec -it payment-service-pod-1 -- curl localhost:8080/metrics | grep db_pool",
+        "expected": "Review active_connections, idle_connections, and waiting_requests metrics"
+      },
+      {
+        "step": 2,
+        "action": "Check for long-running queries",
+        "command": "psql -h db-primary-01 -c \"SELECT pid, now() - pg_stat_activity.query_start AS duration, query FROM pg_stat_activity WHERE state = 'active' ORDER BY duration DESC LIMIT 10;\"",
+        "expected": "Identify queries running longer than 30 seconds"
+      },
+      {
+        "step": 3,
+        "action": "Review recent deployments",
+        "command": "kubectl rollout history deployment/payment-service",
+        "expected": "Check if issue correlates with recent code changes"
+      },
+      {
+        "step": 4,
+        "action": "Check application logs for connection errors",
+        "command": "kubectl logs -l app=payment-service --tail=500 | grep -i 'connection\\|pool\\|timeout'",
+        "expected": "Look for connection acquisition timeout or pool exhausted messages"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Scale up service replicas (temporary)",
+        "command": "kubectl scale deployment payment-service --replicas=5",
+        "note": "This distributes load but doesn't fix root cause"
+      },
+      {
+        "step": 2,
+        "action": "Restart pods to reset connection pools",
+        "command": "kubectl rollout restart deployment/payment-service",
+        "note": "Rolling restart to avoid downtime"
+      },
+      {
+        "step": 3,
+        "action": "Kill long-running queries if identified",
+        "command": "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE duration > interval '5 minutes' AND state = 'active';",
+        "note": "Use with caution - may cause transaction failures"
+      },
+      {
+        "step": 4,
+        "action": "Rollback recent deployment if suspected",
+        "command": "kubectl rollout undo deployment/payment-service",
+        "note": "Only if issue correlates with recent deployment"
+      }
+    ],
+    "escalation": {
+      "condition": "If issue persists after 30 minutes of mitigation",
+      "contact": "data-platform-team",
+      "channel": "#incident-response"
+    }
+  },
+  "RB002": {
+    "id": "RB002",
+    "title": "Memory Leak Investigation and Mitigation",
+    "service": "user-service",
+    "severity": ["P2", "P3"],
+    "symptoms": [
+      "Gradual increase in memory usage over time",
+      "Pods approaching OOM threshold (>85%)",
+      "Increased garbage collection time",
+      "Eventual pod restarts due to OOM"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check current memory usage across pods",
+        "command": "kubectl top pods -l app=user-service",
+        "expected": "Review memory usage trends"
+      },
+      {
+        "step": 2,
+        "action": "Generate heap dump for analysis",
+        "command": "kubectl exec -it user-service-pod-1 -- jcmd 1 GC.heap_dump /tmp/heapdump.hprof",
+        "expected": "Heap dump file created for analysis"
+      },
+      {
+        "step": 3,
+        "action": "Check for recent deployments",
+        "command": "kubectl rollout history deployment/user-service",
+        "expected": "Identify if memory issue correlates with code change"
+      },
+      {
+        "step": 4,
+        "action": "Review application metrics",
+        "command": "curl -s user-service:8080/actuator/metrics/jvm.memory.used",
+        "expected": "Check heap and non-heap memory breakdown"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Rolling restart of affected pods",
+        "command": "kubectl rollout restart deployment/user-service",
+        "note": "Temporary fix to reclaim memory"
+      },
+      {
+        "step": 2,
+        "action": "Increase memory limits if consistently OOMing",
+        "command": "kubectl patch deployment user-service -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"user-service\",\"resources\":{\"limits\":{\"memory\":\"2Gi\"}}}]}}}}'",
+        "note": "Buys time while investigating root cause"
+      },
+      {
+        "step": 3,
+        "action": "Rollback to previous version if recently deployed",
+        "command": "kubectl rollout undo deployment/user-service",
+        "note": "If memory leak correlates with recent deployment"
+      }
+    ],
+    "escalation": {
+      "condition": "If memory issues persist after restart and rollback",
+      "contact": "identity-team",
+      "channel": "#user-service-oncall"
+    }
+  },
+  "RB003": {
+    "id": "RB003",
+    "title": "API Gateway Timeout Troubleshooting",
+    "service": "api-gateway",
+    "severity": ["P1", "P2"],
+    "symptoms": [
+      "High timeout rate on API requests",
+      "Increased latency across multiple endpoints",
+      "Circuit breakers opening for downstream services",
+      "User-facing errors and degraded experience"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check API Gateway health and metrics",
+        "command": "kubectl exec -it api-gateway-pod-1 -- curl localhost:8080/health",
+        "expected": "Review overall health status and downstream service health"
+      },
+      {
+        "step": 2,
+        "action": "Identify which downstream services are timing out",
+        "command": "kubectl logs -l app=api-gateway --tail=1000 | grep -i timeout | awk '{print $NF}' | sort | uniq -c",
+        "expected": "Identify which service(s) are causing timeouts"
+      },
+      {
+        "step": 3,
+        "action": "Check downstream service health",
+        "command": "for svc in payment-service user-service order-service; do echo \"=== $svc ===\"; kubectl exec -it ${svc}-pod-1 -- curl -s localhost:8080/health; done",
+        "expected": "Verify each downstream service is responding"
+      },
+      {
+        "step": 4,
+        "action": "Check network connectivity",
+        "command": "kubectl exec -it api-gateway-pod-1 -- ping -c 3 payment-service",
+        "expected": "Verify network path to downstream services"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Enable circuit breaker for failing downstream services",
+        "command": "kubectl patch configmap api-gateway-config -p '{\"data\":{\"CIRCUIT_BREAKER_ENABLED\":\"true\"}}'",
+        "note": "Prevents cascade failures"
+      },
+      {
+        "step": 2,
+        "action": "Scale up API Gateway if CPU constrained",
+        "command": "kubectl scale deployment api-gateway --replicas=5",
+        "note": "If issue is gateway capacity"
+      },
+      {
+        "step": 3,
+        "action": "Increase timeout for slow services temporarily",
+        "command": "kubectl patch configmap api-gateway-config -p '{\"data\":{\"DEFAULT_TIMEOUT_MS\":\"10000\"}}'",
+        "note": "Only if downstream is slow but functional"
+      }
+    ],
+    "escalation": {
+      "condition": "If multiple downstream services are affected",
+      "contact": "platform-team",
+      "channel": "#incident-response"
+    }
+  },
+  "RB004": {
+    "id": "RB004",
+    "title": "SSL Certificate Renewal",
+    "service": "cdn-service",
+    "severity": ["P3"],
+    "symptoms": [
+      "Certificate expiration warning alerts",
+      "Certificate validity check returning expiring_soon status"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check certificate expiration date",
+        "command": "echo | openssl s_client -servername cdn.example.com -connect cdn.example.com:443 2>/dev/null | openssl x509 -noout -dates",
+        "expected": "Confirm certificate expiration date"
+      },
+      {
+        "step": 2,
+        "action": "Verify certificate auto-renewal status",
+        "command": "kubectl get certificate cdn-tls -o jsonpath='{.status.conditions}'",
+        "expected": "Check if cert-manager is configured and working"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Trigger manual certificate renewal",
+        "command": "kubectl delete secret cdn-tls && kubectl annotate certificate cdn-tls cert-manager.io/renew=\"true\"",
+        "note": "Forces cert-manager to renew the certificate"
+      },
+      {
+        "step": 2,
+        "action": "Verify new certificate is issued",
+        "command": "kubectl get certificate cdn-tls -w",
+        "note": "Wait for Ready status"
+      }
+    ],
+    "escalation": {
+      "condition": "If auto-renewal fails or certificate is not issued within 1 hour",
+      "contact": "platform-team",
+      "channel": "#platform-support"
+    }
+  },
+  "RB005": {
+    "id": "RB005",
+    "title": "Disk Space Cleanup for Database Servers",
+    "service": "database-cluster",
+    "severity": ["P2", "P3"],
+    "symptoms": [
+      "Disk usage above 80% threshold",
+      "Database write operations slowing down",
+      "Disk space alerts firing"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check current disk usage",
+        "command": "df -h /var/lib/postgresql/data",
+        "expected": "Identify current usage percentage"
+      },
+      {
+        "step": 2,
+        "action": "Find largest files and directories",
+        "command": "du -sh /var/lib/postgresql/data/* | sort -rh | head -20",
+        "expected": "Identify what's consuming disk space"
+      },
+      {
+        "step": 3,
+        "action": "Check WAL archive size",
+        "command": "du -sh /var/lib/postgresql/data/pg_wal",
+        "expected": "WAL files can accumulate if archiving is delayed"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Clean up old log files",
+        "command": "find /var/log/postgresql -name '*.log' -mtime +7 -delete",
+        "note": "Remove logs older than 7 days"
+      },
+      {
+        "step": 2,
+        "action": "Run VACUUM on large tables",
+        "command": "psql -c 'VACUUM FULL ANALYZE;'",
+        "note": "Reclaims dead tuple space - causes table lock"
+      },
+      {
+        "step": 3,
+        "action": "Archive old data to cold storage",
+        "command": "pg_dump -t old_audit_logs | gzip > /mnt/cold-storage/audit_logs_backup.sql.gz && psql -c 'TRUNCATE old_audit_logs;'",
+        "note": "For historical data not frequently accessed"
+      }
+    ],
+    "escalation": {
+      "condition": "If disk usage remains above 90% after cleanup",
+      "contact": "data-platform-team",
+      "channel": "#database-ops"
+    }
+  },
+  "RB006": {
+    "id": "RB006",
+    "title": "High CPU Usage and Queue Backlog",
+    "service": "order-service",
+    "severity": ["P2"],
+    "symptoms": [
+      "CPU usage consistently above 85%",
+      "Growing queue backlog",
+      "Increased order processing latency",
+      "Customer complaints about slow order confirmations"
+    ],
+    "investigation_steps": [
+      {
+        "step": 1,
+        "action": "Check CPU usage and pod metrics",
+        "command": "kubectl top pods -l app=order-service",
+        "expected": "Confirm CPU usage across all pods"
+      },
+      {
+        "step": 2,
+        "action": "Check queue metrics",
+        "command": "kubectl exec -it order-service-pod-1 -- curl localhost:8080/metrics | grep queue",
+        "expected": "Review queue depth and processing rate"
+      },
+      {
+        "step": 3,
+        "action": "Profile application to find CPU hotspots",
+        "command": "kubectl exec -it order-service-pod-1 -- jcmd 1 JFR.start duration=60s filename=/tmp/profile.jfr",
+        "expected": "Capture CPU profiling data"
+      },
+      {
+        "step": 4,
+        "action": "Check for traffic spike",
+        "command": "kubectl logs -l app=order-service --since=1h | wc -l",
+        "expected": "Compare with normal request volume"
+      }
+    ],
+    "remediation_steps": [
+      {
+        "step": 1,
+        "action": "Scale up workers horizontally",
+        "command": "kubectl scale deployment order-service --replicas=6",
+        "note": "Add more processing capacity"
+      },
+      {
+        "step": 2,
+        "action": "Increase resource limits if consistently hitting ceiling",
+        "command": "kubectl patch deployment order-service -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"order-service\",\"resources\":{\"limits\":{\"cpu\":\"2000m\"}}}]}}}}'",
+        "note": "Allow pods to use more CPU"
+      },
+      {
+        "step": 3,
+        "action": "Enable rate limiting if under attack/abuse",
+        "command": "kubectl patch configmap order-service-config -p '{\"data\":{\"RATE_LIMIT_ENABLED\":\"true\",\"RATE_LIMIT_RPS\":\"100\"}}'",
+        "note": "Protect service from overload"
+      }
+    ],
+    "escalation": {
+      "condition": "If queue backlog continues growing after scaling",
+      "contact": "commerce-team",
+      "channel": "#order-service-oncall"
+    }
+  }
+}

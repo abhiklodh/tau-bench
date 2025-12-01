@@ -1,0 +1,171 @@
+{
+  "payment-service": {
+    "id": "payment-service",
+    "name": "Payment Service",
+    "description": "Handles all payment processing, including credit cards, PayPal, and gift cards",
+    "team": "payments-team",
+    "oncall_schedule": "oncall_engineer_1",
+    "tier": "critical",
+    "dependencies": ["database-cluster", "external-payment-gateway", "user-service"],
+    "health_status": "degraded",
+    "metrics": {
+      "requests_per_second": 1250,
+      "error_rate": 15.2,
+      "latency_p50_ms": 120,
+      "latency_p99_ms": 8500,
+      "success_rate": 84.8
+    },
+    "recent_deployments": [
+      {"version": "v2.3.1", "timestamp": "2024-05-14T18:00:00Z", "status": "success"},
+      {"version": "v2.3.0", "timestamp": "2024-05-13T14:00:00Z", "status": "success"}
+    ],
+    "pods": [
+      {"name": "payment-service-pod-1", "status": "running", "cpu": 45, "memory": 60},
+      {"name": "payment-service-pod-2", "status": "running", "cpu": 48, "memory": 62},
+      {"name": "payment-service-pod-3", "status": "running", "cpu": 52, "memory": 65}
+    ],
+    "database_pool": {
+      "max_connections": 100,
+      "active_connections": 98,
+      "idle_connections": 2,
+      "waiting_requests": 45
+    }
+  },
+  "user-service": {
+    "id": "user-service",
+    "name": "User Service",
+    "description": "Manages user authentication, profiles, and session management",
+    "team": "identity-team",
+    "oncall_schedule": "oncall_engineer_1",
+    "tier": "critical",
+    "dependencies": ["database-cluster", "cache-service", "notification-service"],
+    "health_status": "warning",
+    "metrics": {
+      "requests_per_second": 3500,
+      "error_rate": 0.5,
+      "latency_p50_ms": 25,
+      "latency_p99_ms": 150,
+      "success_rate": 99.5
+    },
+    "recent_deployments": [
+      {"version": "v4.1.2", "timestamp": "2024-05-15T02:00:00Z", "status": "success"},
+      {"version": "v4.1.1", "timestamp": "2024-05-12T10:00:00Z", "status": "success"}
+    ],
+    "pods": [
+      {"name": "user-service-pod-1", "status": "running", "cpu": 35, "memory": 85},
+      {"name": "user-service-pod-2", "status": "running", "cpu": 38, "memory": 84},
+      {"name": "user-service-pod-3", "status": "running", "cpu": 36, "memory": 86},
+      {"name": "user-service-pod-4", "status": "running", "cpu": 40, "memory": 85}
+    ]
+  },
+  "api-gateway": {
+    "id": "api-gateway",
+    "name": "API Gateway",
+    "description": "Central entry point for all API requests, handles routing, rate limiting, and authentication",
+    "team": "platform-team",
+    "oncall_schedule": "oncall_engineer_2",
+    "tier": "critical",
+    "dependencies": ["payment-service", "user-service", "order-service", "product-service"],
+    "health_status": "degraded",
+    "metrics": {
+      "requests_per_second": 15000,
+      "error_rate": 5.2,
+      "latency_p50_ms": 45,
+      "latency_p99_ms": 2500,
+      "success_rate": 94.8,
+      "timeout_rate": 30.5
+    },
+    "recent_deployments": [
+      {"version": "v1.8.0", "timestamp": "2024-05-10T06:00:00Z", "status": "success"}
+    ],
+    "pods": [
+      {"name": "api-gateway-pod-1", "status": "running", "cpu": 75, "memory": 70},
+      {"name": "api-gateway-pod-2", "status": "running", "cpu": 78, "memory": 72},
+      {"name": "api-gateway-pod-3", "status": "running", "cpu": 72, "memory": 68}
+    ]
+  },
+  "order-service": {
+    "id": "order-service",
+    "name": "Order Service",
+    "description": "Handles order creation, processing, and fulfillment",
+    "team": "commerce-team",
+    "oncall_schedule": "oncall_engineer_2",
+    "tier": "critical",
+    "dependencies": ["database-cluster", "payment-service", "inventory-service", "notification-service"],
+    "health_status": "warning",
+    "metrics": {
+      "requests_per_second": 800,
+      "error_rate": 2.1,
+      "latency_p50_ms": 180,
+      "latency_p99_ms": 950,
+      "success_rate": 97.9
+    },
+    "recent_deployments": [
+      {"version": "v3.5.2", "timestamp": "2024-05-14T22:00:00Z", "status": "success"}
+    ],
+    "pods": [
+      {"name": "order-service-pod-1", "status": "running", "cpu": 92, "memory": 55},
+      {"name": "order-service-pod-2", "status": "running", "cpu": 91, "memory": 58},
+      {"name": "order-service-pod-3", "status": "running", "cpu": 93, "memory": 52}
+    ],
+    "queue_metrics": {
+      "pending_orders": 15000,
+      "processing_rate": 100,
+      "backlog_age_minutes": 150
+    }
+  },
+  "database-cluster": {
+    "id": "database-cluster",
+    "name": "Database Cluster",
+    "description": "Primary PostgreSQL database cluster for transactional data",
+    "team": "data-platform-team",
+    "oncall_schedule": "oncall_engineer_3",
+    "tier": "critical",
+    "dependencies": [],
+    "health_status": "healthy",
+    "metrics": {
+      "queries_per_second": 25000,
+      "replication_lag_ms": 15,
+      "connection_usage_percent": 68
+    },
+    "nodes": [
+      {"name": "db-primary-01", "role": "primary", "status": "healthy", "disk_usage": 65, "cpu": 55, "memory": 72},
+      {"name": "db-replica-01", "role": "replica", "status": "healthy", "disk_usage": 62, "cpu": 35, "memory": 65},
+      {"name": "db-replica-02", "role": "replica", "status": "healthy", "disk_usage": 63, "cpu": 38, "memory": 67}
+    ]
+  },
+  "cdn-service": {
+    "id": "cdn-service",
+    "name": "CDN Service",
+    "description": "Content delivery network for static assets and media",
+    "team": "platform-team",
+    "oncall_schedule": "oncall_engineer_2",
+    "tier": "high",
+    "dependencies": [],
+    "health_status": "healthy",
+    "metrics": {
+      "cache_hit_rate": 95.2,
+      "bandwidth_gbps": 12.5,
+      "requests_per_second": 50000
+    },
+    "certificates": [
+      {"domain": "cdn.example.com", "expires": "2024-05-22T00:00:00Z", "status": "expiring_soon"},
+      {"domain": "assets.example.com", "expires": "2024-12-15T00:00:00Z", "status": "valid"}
+    ]
+  },
+  "notification-service": {
+    "id": "notification-service",
+    "name": "Notification Service",
+    "description": "Handles email, SMS, and push notifications",
+    "team": "communications-team",
+    "oncall_schedule": "oncall_engineer_1",
+    "tier": "medium",
+    "dependencies": ["user-service"],
+    "health_status": "healthy",
+    "metrics": {
+      "messages_per_minute": 5000,
+      "delivery_rate": 99.2,
+      "queue_depth": 150
+    }
+  }
+}
