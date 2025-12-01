@@ -147,7 +147,13 @@ class SilenceAlert(Tool):
         
         alert = alerts[alert_id]
         alert["status"] = "silenced"
-        alert["silenced_until"] = f"2024-05-15T{15 + duration_minutes // 60:02d}:{duration_minutes % 60:02d}:00Z"
+        
+        # Calculate silence end time properly using datetime arithmetic
+        # Base time is 2024-05-15 15:00:00
+        from datetime import datetime, timedelta
+        base_time = datetime(2024, 5, 15, 15, 0, 0)
+        end_time = base_time + timedelta(minutes=duration_minutes)
+        alert["silenced_until"] = end_time.strftime("%Y-%m-%dT%H:%M:%SZ")
         alert["silence_reason"] = reason
         
         return f"Alert {alert_id} silenced for {duration_minutes} minutes. Reason: {reason}"

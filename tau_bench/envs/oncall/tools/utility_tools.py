@@ -9,16 +9,13 @@ class Calculate(Tool):
 
     @staticmethod
     def invoke(data: Dict[str, Any], expression: str) -> str:
+        if not all(char in "0123456789+-*/(). " for char in expression):
+            return "Error: invalid characters in expression"
         try:
-            # Only allow safe mathematical operations
-            allowed_chars = set("0123456789+-*/.() ")
-            if not all(c in allowed_chars for c in expression):
-                return "Error: Expression contains invalid characters. Only numbers and basic operators (+, -, *, /, .) are allowed."
-            
-            result = eval(expression)
-            return str(result)
+            # Evaluate the mathematical expression safely
+            return str(round(float(eval(expression, {"__builtins__": None}, {})), 2))
         except Exception as e:
-            return f"Error calculating expression: {e}"
+            return f"Error: {e}"
 
     @staticmethod
     def get_info() -> Dict[str, Any]:
